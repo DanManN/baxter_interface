@@ -14,7 +14,6 @@ class PID(object):
     instantiated all the gain variables are set to zero, so calling
     the method compute_output will just return zero.
     """
-
     def __init__(self, kp=0.0, ki=0.0, kd=0.0):
         # initialize gains
         self._kp = kp
@@ -85,5 +84,4 @@ class PID(object):
         self._prev_err = error  # save t-1 error
 
         # sum the terms and return the result
-        return ((self._kp * self._cp) + (self._ki * self._ci) +
-                (self._kd * self._cd))
+        return ((self._kp * self._cp) + (self._ki * self._ci) + (self._kd * self._cd))

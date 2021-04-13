@@ -64,10 +64,7 @@ class DigitalIO(object):
         type_ns = '/robot/' + self._component_type
         topic_base = type_ns + '/' + self._id
 
-        self._sub_state = rospy.Subscriber(
-            topic_base + '/state',
-            DigitalIOState,
-            self._on_io_state)
+        self._sub_state = rospy.Subscriber(topic_base + '/state', DigitalIOState, self._on_io_state)
 
         baxter_dataflow.wait_for(
             lambda: self._state != None,
@@ -78,10 +75,7 @@ class DigitalIO(object):
 
         # check if output-capable before creating publisher
         if self._is_output:
-            self._pub_output = rospy.Publisher(
-                type_ns + '/command',
-                DigitalOutputCommand,
-                queue_size=10)
+            self._pub_output = rospy.Publisher(type_ns + '/command', DigitalOutputCommand, queue_size=10)
 
     def _on_io_state(self, msg):
         """
@@ -134,8 +128,7 @@ class DigitalIO(object):
                         If 0, just command once and return. [0]
         """
         if not self._is_output:
-            raise IOError(errno.EACCES, "Component is not an output [%s: %s]" %
-                (self._component_type, self._id))
+            raise IOError(errno.EACCES, "Component is not an output [%s: %s]" % (self._component_type, self._id))
         cmd = DigitalOutputCommand()
         cmd.name = self._id
         cmd.value = value
@@ -146,6 +139,6 @@ class DigitalIO(object):
                 test=lambda: self.state == value,
                 timeout=timeout,
                 rate=100,
-                timeout_msg=("Failed to command digital io to: %r" % (value,)),
+                timeout_msg=("Failed to command digital io to: %r" % (value, )),
                 body=lambda: self._pub_output.publish(cmd)
             )

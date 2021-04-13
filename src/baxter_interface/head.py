@@ -30,15 +30,13 @@ from math import fabs
 
 import rospy
 
-from std_msgs.msg import (
-    Bool
-)
+from std_msgs.msg import (Bool)
 
 import baxter_dataflow
 
 from baxter_core_msgs.msg import (
-   HeadPanCommand,
-   HeadState,
+    HeadPanCommand,
+    HeadState,
 )
 from baxter_interface import settings
 
@@ -56,27 +54,17 @@ class Head(object):
         """
         self._state = dict()
 
-        self._pub_pan = rospy.Publisher(
-            '/robot/head/command_head_pan',
-            HeadPanCommand,
-            queue_size=10)
+        self._pub_pan = rospy.Publisher('/robot/head/command_head_pan', HeadPanCommand, queue_size=10)
 
-        self._pub_nod = rospy.Publisher(
-            '/robot/head/command_head_nod',
-            Bool,
-            queue_size=10)
+        self._pub_nod = rospy.Publisher('/robot/head/command_head_nod', Bool, queue_size=10)
 
         state_topic = '/robot/head/head_state'
-        self._sub_state = rospy.Subscriber(
-            state_topic,
-            HeadState,
-            self._on_head_state)
+        self._sub_state = rospy.Subscriber(state_topic, HeadState, self._on_head_state)
 
         baxter_dataflow.wait_for(
             lambda: len(self._state) != 0,
             timeout=5.0,
-            timeout_msg=("Failed to get current head state from %s" %
-                         (state_topic,)),
+            timeout_msg=("Failed to get current head state from %s" % (state_topic, )),
         )
 
     def _on_head_state(self, msg):
@@ -127,27 +115,25 @@ class Head(object):
                             to use legacy range between 0-100 [100]
         """
         if scale_speed:
-            cmd_speed = speed / 100.0;
+            cmd_speed = speed / 100.0
         else:
             cmd_speed = speed
-        if (cmd_speed < HeadPanCommand.MIN_SPEED_RATIO or
-              cmd_speed > HeadPanCommand.MAX_SPEED_RATIO):
-            rospy.logerr(("Commanded Speed, ({0}), outside of valid range"
-                          " [{1}, {2}]").format(cmd_speed,
-                          HeadPanCommand.MIN_SPEED_RATIO,
-                          HeadPanCommand.MAX_SPEED_RATIO))
+        if (cmd_speed < HeadPanCommand.MIN_SPEED_RATIO or cmd_speed > HeadPanCommand.MAX_SPEED_RATIO):
+            rospy.logerr(
+                ("Commanded Speed, ({0}), outside of valid range"
+                 " [{1}, {2}]").format(cmd_speed, HeadPanCommand.MIN_SPEED_RATIO, HeadPanCommand.MAX_SPEED_RATIO)
+            )
         msg = HeadPanCommand(angle, cmd_speed, True)
         self._pub_pan.publish(msg)
 
         if not timeout == 0:
             baxter_dataflow.wait_for(
-                lambda: (abs(self.pan() - angle) <=
-                         settings.HEAD_PAN_ANGLE_TOLERANCE),
+                lambda: (abs(self.pan() - angle) <= settings.HEAD_PAN_ANGLE_TOLERANCE),
                 timeout=timeout,
                 rate=100,
                 timeout_msg="Failed to move head to pan command %f" % angle,
                 body=lambda: self._pub_pan.publish(msg)
-                )
+            )
 
     def command_nod(self, timeout=5.0):
         """

@@ -37,6 +37,7 @@ from baxter_interface import (
     digital_io,
 )
 
+
 class Navigator(object):
     """
     Interface class for a Navigator on the Baxter robot.
@@ -74,7 +75,7 @@ class Navigator(object):
           left, right, torso_left, torso_right
         """
         if not location in self.__LOCATIONS:
-            raise AttributeError("Invalid Navigator name '%s'" % (location,))
+            raise AttributeError("Invalid Navigator name '%s'" % (location, ))
         self._id = location
         self._state = None
         self.button0_changed = baxter_dataflow.Signal()
@@ -83,23 +84,16 @@ class Navigator(object):
         self.wheel_changed = baxter_dataflow.Signal()
 
         nav_state_topic = 'robot/navigators/{0}_navigator/state'.format(self._id)
-        self._state_sub = rospy.Subscriber(
-            nav_state_topic,
-            NavigatorState,
-            self._on_state)
+        self._state_sub = rospy.Subscriber(nav_state_topic, NavigatorState, self._on_state)
 
-        self._inner_led = digital_io.DigitalIO(
-            '%s_inner_light' % (self._id,))
+        self._inner_led = digital_io.DigitalIO('%s_inner_light' % (self._id, ))
         self._inner_led_idx = 0
 
-        self._outer_led = digital_io.DigitalIO(
-            '%s_outer_light' % (self._id,))
+        self._outer_led = digital_io.DigitalIO('%s_outer_light' % (self._id, ))
         self._outer_led_idx = 1
 
-        init_err_msg = ("Navigator init failed to get current state from %s" %
-                        (nav_state_topic,))
-        baxter_dataflow.wait_for(lambda: self._state != None,
-                                 timeout_msg=init_err_msg)
+        init_err_msg = ("Navigator init failed to get current state from %s" % (nav_state_topic, ))
+        baxter_dataflow.wait_for(lambda: self._state != None, timeout_msg=init_err_msg)
 
     @property
     def wheel(self):
@@ -180,10 +174,7 @@ class Navigator(object):
         old_state = self._state
         self._state = msg
 
-        buttons = [self.button0_changed,
-                   self.button1_changed,
-                   self.button2_changed
-                   ]
+        buttons = [self.button0_changed, self.button1_changed, self.button2_changed]
         for i, signal in enumerate(buttons):
             if old_state.buttons[i] != msg.buttons[i]:
                 signal(msg.buttons[i])

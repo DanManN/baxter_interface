@@ -34,7 +34,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-
 """
 The Bezier library was  implemented as a class project in CIS515,
 Fundamentals of Linear Algebra, taught by Professor Jean Gallier
@@ -84,8 +83,7 @@ plt.show()
 import numpy as np
 
 
-def de_boor_control_pts(points_array, d0=None,
-                        dN=None, natural=True):
+def de_boor_control_pts(points_array, d0=None, dN=None, natural=True):
     """
     Compute the de Boor control points for a given
     set for control points
@@ -118,41 +116,41 @@ def de_boor_control_pts(points_array, d0=None,
     # Compute A matrix
     if natural:
         if N > 2:
-            A = np.zeros((N-1, N-1))
+            A = np.zeros((N - 1, N - 1))
             A[np.ix_([0], [0, 1])] = [4, 1]
-            A[np.ix_([N-2], [N-3, N-2])] = [1, 4]
+            A[np.ix_([N - 2], [N - 3, N - 2])] = [1, 4]
         else:
             A = 4.0
     else:
         if N > 2:
-            A = np.zeros((N-1, N-1))
+            A = np.zeros((N - 1, N - 1))
             A[np.ix_([0], [0, 1])] = [3.5, 1]
-            A[np.ix_([N-2], [N-3, N-2])] = [1, 3.5]
+            A[np.ix_([N - 2], [N - 3, N - 2])] = [1, 3.5]
         else:
             A = 3.5
-    for i in range(1, N-2):
-        A[np.ix_([i], [i-1, i, i+1])] = [1, 4, 1]
+    for i in range(1, N - 2):
+        A[np.ix_([i], [i - 1, i, i + 1])] = [1, 4, 1]
     # Construct de Boor Control Points from A matrix
-    d_pts = np.zeros((N+3, k))
+    d_pts = np.zeros((N + 3, k))
     for col in range(0, k):
-        x = np.zeros((max(N-1, 1), 1))
+        x = np.zeros((max(N - 1, 1), 1))
         if N > 2:
             # Compute start / end conditions
             if natural:
-                x[N-2, 0] = 6*points_array[-2, col] - points_array[-1, col]
-                x[0, 0] = 6*points_array[1, col] - points_array[0, col]
+                x[N - 2, 0] = 6 * points_array[-2, col] - points_array[-1, col]
+                x[0, 0] = 6 * points_array[1, col] - points_array[0, col]
             else:
-                x[N-2, 0] = 6*points_array[-2, col] - 1.5*dN[0, col]
-                x[0, 0] = 6*points_array[1, col] - 1.5*d0[0, col]
-            x[range(1, N-3+1), 0] = 6*points_array[range(2, N-2+1), col]
+                x[N - 2, 0] = 6 * points_array[-2, col] - 1.5 * dN[0, col]
+                x[0, 0] = 6 * points_array[1, col] - 1.5 * d0[0, col]
+            x[range(1, N - 3 + 1), 0] = 6 * points_array[range(2, N - 2 + 1), col]
             # Solve bezier interpolation
-            d_pts[2:N+1, col] = np.linalg.solve(A, x).T
+            d_pts[2:N + 1, col] = np.linalg.solve(A, x).T
         else:
             # Compute start / end conditions
             if natural:
-                x[0, 0] = 6*points_array[1, col] - points_array[0, col]
+                x[0, 0] = 6 * points_array[1, col] - points_array[0, col]
             else:
-                x[0, 0] = 6*points_array[1, col] - 1.5*d0[col]
+                x[0, 0] = 6 * points_array[1, col] - 1.5 * d0[col]
             # Solve bezier interpolation
             d_pts[2, col] = x / A
     # Store off start and end positions
@@ -160,14 +158,13 @@ def de_boor_control_pts(points_array, d0=None,
     d_pts[-1, :] = points_array[-1, :]
     # Compute the second to last de Boor point based on end conditions
     if natural:
-        one_third = (1.0/3.0)
-        two_thirds = (2.0/3.0)
-        d_pts[1, :] = (two_thirds)*points_array[0, :] + (one_third)*d_pts[2, :]
-        d_pts[N+1, :] = ((one_third)*d_pts[-3, :] +
-                         (two_thirds)*points_array[-1, :])
+        one_third = (1.0 / 3.0)
+        two_thirds = (2.0 / 3.0)
+        d_pts[1, :] = (two_thirds) * points_array[0, :] + (one_third) * d_pts[2, :]
+        d_pts[N + 1, :] = ((one_third) * d_pts[-3, :] + (two_thirds) * points_array[-1, :])
     else:
         d_pts[1, :] = d0
-        d_pts[N+1, :] = dN
+        d_pts[N + 1, :] = dN
     return d_pts
 
 
@@ -202,40 +199,28 @@ def bezier_coefficients(points_array, d_pts):
     N = rows - 1  # N minus 1 because points array includes x_0
     b_coeffs = np.zeros(shape=(k, N, 4))
     for i in range(0, N):
-        points_array_i = i+1
+        points_array_i = i + 1
         d_pts_i = i + 2
         if i == 0:
             for axis_pos in range(0, k):
-                b_coeffs[axis_pos, i, 0] = points_array[points_array_i - 1,
-                                                        axis_pos]
+                b_coeffs[axis_pos, i, 0] = points_array[points_array_i - 1, axis_pos]
                 b_coeffs[axis_pos, i, 1] = d_pts[d_pts_i - 1, axis_pos]
-                b_coeffs[axis_pos, i, 2] = (0.5 * d_pts[d_pts_i - 1, axis_pos]
-                                            + 0.5 * d_pts[d_pts_i, axis_pos])
-                b_coeffs[axis_pos, i, 3] = points_array[points_array_i,
-                                                        axis_pos]
-        elif i == N-1:
+                b_coeffs[axis_pos, i, 2] = (0.5 * d_pts[d_pts_i - 1, axis_pos] + 0.5 * d_pts[d_pts_i, axis_pos])
+                b_coeffs[axis_pos, i, 3] = points_array[points_array_i, axis_pos]
+        elif i == N - 1:
             for axis_pos in range(0, k):
-                b_coeffs[axis_pos, i, 0] = points_array[points_array_i - 1,
-                                                        axis_pos]
-                b_coeffs[axis_pos, i, 1] = (0.5 * d_pts[d_pts_i - 1, axis_pos]
-                                            + 0.5 * d_pts[d_pts_i, axis_pos])
+                b_coeffs[axis_pos, i, 0] = points_array[points_array_i - 1, axis_pos]
+                b_coeffs[axis_pos, i, 1] = (0.5 * d_pts[d_pts_i - 1, axis_pos] + 0.5 * d_pts[d_pts_i, axis_pos])
                 b_coeffs[axis_pos, i, 2] = d_pts[d_pts_i, axis_pos]
-                b_coeffs[axis_pos, i, 3] = points_array[points_array_i,
-                                                        axis_pos]
+                b_coeffs[axis_pos, i, 3] = points_array[points_array_i, axis_pos]
         else:
             for axis_pos in range(0, k):
-                b_coeffs[axis_pos, i, 0] = points_array[points_array_i - 1,
-                                                        axis_pos]
-                b_coeffs[axis_pos, i, 1] = (2.0/3.0 * d_pts[d_pts_i - 1,
-                                                            axis_pos]
-                                            + 1.0/3.0 * d_pts[d_pts_i,
-                                                              axis_pos])
-                b_coeffs[axis_pos, i, 2] = (1.0/3.0 * d_pts[d_pts_i - 1,
-                                                            axis_pos]
-                                            + 2.0/3.0 * d_pts[d_pts_i,
-                                                              axis_pos])
-                b_coeffs[axis_pos, i, 3] = points_array[points_array_i,
-                                                        axis_pos]
+                b_coeffs[axis_pos, i, 0] = points_array[points_array_i - 1, axis_pos]
+                b_coeffs[axis_pos, i,
+                         1] = (2.0 / 3.0 * d_pts[d_pts_i - 1, axis_pos] + 1.0 / 3.0 * d_pts[d_pts_i, axis_pos])
+                b_coeffs[axis_pos, i,
+                         2] = (1.0 / 3.0 * d_pts[d_pts_i - 1, axis_pos] + 2.0 / 3.0 * d_pts[d_pts_i, axis_pos])
+                b_coeffs[axis_pos, i, 3] = points_array[points_array_i, axis_pos]
 
     return b_coeffs
 
@@ -262,11 +247,10 @@ def _cubic_spline_point(b_coeff, t):
         current position in k dimensions
             numpy.array of size 1 by k
     """
-    return (pow((1-t), 3)*b_coeff[:, 0] +
-            3*pow((1-t), 2)*t*b_coeff[:, 1] +
-            3*(1-t)*pow(t, 2)*b_coeff[:, 2] +
-            pow(t, 3)*b_coeff[:, 3]
-            )
+    return (
+        pow((1 - t), 3) * b_coeff[:, 0] + 3 * pow((1 - t), 2) * t * b_coeff[:, 1] + 3 *
+        (1 - t) * pow(t, 2) * b_coeff[:, 2] + pow(t, 3) * b_coeff[:, 3]
+    )
 
 
 def bezier_point(b_coeffs, b_index, t):
@@ -298,7 +282,7 @@ def bezier_point(b_coeffs, b_index, t):
     else:
         t = 0.0 if t < 0.0 else t
         t = 1.0 if t > 1.0 else t
-        b_coeff_set = b_coeffs[:, b_index-1, range(4)]
+        b_coeff_set = b_coeffs[:, b_index - 1, range(4)]
         b_point = _cubic_spline_point(b_coeff_set, t)
     return b_point
 
@@ -328,14 +312,11 @@ def bezier_curve(b_coeffs, num_intervals):
         "Invalid number of intervals chosen (must be greater than 0)"
     interval = 1.0 / num_intervals
     (num_axes, num_bpts, _) = np.shape(b_coeffs)
-    b_curve = np.zeros((num_bpts*num_intervals+1, num_axes))
+    b_curve = np.zeros((num_bpts * num_intervals + 1, num_axes))
     # Copy out initial point
     b_curve[0, :] = b_coeffs[:, 0, 0]
     for current_bpt in range(num_bpts):
-            b_coeff_set = b_coeffs[:, current_bpt, range(4)]
-            for iteration, t in enumerate(np.linspace(interval, 1,
-                                                      num_intervals)):
-                b_curve[(current_bpt *
-                         num_intervals +
-                         iteration+1), :] = _cubic_spline_point(b_coeff_set, t)
+        b_coeff_set = b_coeffs[:, current_bpt, range(4)]
+        for iteration, t in enumerate(np.linspace(interval, 1, num_intervals)):
+            b_curve[(current_bpt * num_intervals + iteration + 1), :] = _cubic_spline_point(b_coeff_set, t)
     return b_curve

@@ -26,7 +26,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
 """
 Baxter RSDK Gripper Action Server
 """
@@ -36,9 +35,7 @@ import rospy
 
 from dynamic_reconfigure.server import Server
 
-from baxter_interface.cfg import (
-    GripperActionServerConfig
-)
+from baxter_interface.cfg import (GripperActionServerConfig)
 from gripper_action.gripper_action import (
     GripperActionServer,
 )
@@ -46,12 +43,10 @@ from gripper_action.gripper_action import (
 
 def start_server(gripper):
     print("Initializing node... ")
-    rospy.init_node("rsdk_gripper_action_server%s" %
-                    ("" if gripper == 'both' else "_" + gripper,))
+    rospy.init_node("rsdk_gripper_action_server%s" % ("" if gripper == 'both' else "_" + gripper, ))
     print("Initializing gripper action server...")
 
-    dynamic_cfg_srv = Server(GripperActionServerConfig,
-                             lambda config, level: config)
+    dynamic_cfg_srv = Server(GripperActionServerConfig, lambda config, level: config)
 
     if gripper == 'both':
         GripperActionServer('right', dynamic_cfg_srv)
@@ -65,9 +60,14 @@ def start_server(gripper):
 def main():
     arg_fmt = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=arg_fmt)
-    parser.add_argument("-g", "--gripper", dest="gripper", default="both",
-                        choices=['both', 'left', 'right'],
-                        help="gripper action server limb",)
+    parser.add_argument(
+        "-g",
+        "--gripper",
+        dest="gripper",
+        default="both",
+        choices=['both', 'left', 'right'],
+        help="gripper action server limb",
+    )
     args = parser.parse_args(rospy.myargv()[1:])
     start_server(args.gripper)
 

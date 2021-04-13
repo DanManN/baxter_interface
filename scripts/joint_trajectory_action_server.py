@@ -26,7 +26,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
 """
 Baxter RSDK Joint Trajectory Controller
     Unlike other robots running ROS, this is not a Motor Controller plugin,
@@ -54,25 +53,22 @@ from trajectory_msgs.msg import (
 
 def start_server(limb, rate, mode):
     print("Initializing node... ")
-    rospy.init_node("rsdk_%s_joint_trajectory_action_server%s" %
-                    (mode, "" if limb == 'both' else "_" + limb,))
+    rospy.init_node("rsdk_%s_joint_trajectory_action_server%s" % (
+        mode,
+        "" if limb == 'both' else "_" + limb,
+    ))
     print("Initializing joint trajectory action server...")
 
     if mode == 'velocity':
-        dyn_cfg_srv = Server(VelocityJointTrajectoryActionServerConfig,
-                             lambda config, level: config)
+        dyn_cfg_srv = Server(VelocityJointTrajectoryActionServerConfig, lambda config, level: config)
     elif mode == 'position':
-        dyn_cfg_srv = Server(PositionJointTrajectoryActionServerConfig,
-                             lambda config, level: config)
+        dyn_cfg_srv = Server(PositionJointTrajectoryActionServerConfig, lambda config, level: config)
     else:
-        dyn_cfg_srv = Server(PositionFFJointTrajectoryActionServerConfig,
-                             lambda config, level: config)
+        dyn_cfg_srv = Server(PositionFFJointTrajectoryActionServerConfig, lambda config, level: config)
     jtas = []
     if limb == 'both':
-        jtas.append(JointTrajectoryActionServer('right', dyn_cfg_srv,
-                                                rate, mode))
-        jtas.append(JointTrajectoryActionServer('left', dyn_cfg_srv,
-                                                rate, mode))
+        jtas.append(JointTrajectoryActionServer('right', dyn_cfg_srv, rate, mode))
+        jtas.append(JointTrajectoryActionServer('left', dyn_cfg_srv, rate, mode))
     else:
         jtas.append(JointTrajectoryActionServer(limb, dyn_cfg_srv, rate, mode))
 
@@ -89,16 +85,18 @@ def main():
     arg_fmt = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=arg_fmt)
     parser.add_argument(
-        "-l", "--limb", dest="limb", default="both",
+        "-l",
+        "--limb",
+        dest="limb",
+        default="both",
         choices=['both', 'left', 'right'],
         help="joint trajectory action server limb"
     )
+    parser.add_argument("-r", "--rate", dest="rate", default=100.0, type=float, help="trajectory control rate (Hz)")
     parser.add_argument(
-        "-r", "--rate", dest="rate", default=100.0,
-        type=float, help="trajectory control rate (Hz)"
-    )
-    parser.add_argument(
-        "-m", "--mode", default='position_w_id',
+        "-m",
+        "--mode",
+        default='position_w_id',
         choices=['position_w_id', 'position', 'velocity'],
         help="control mode for trajectory execution"
     )

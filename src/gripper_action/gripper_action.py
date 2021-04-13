@@ -24,7 +24,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
 """
 Baxter RSDK Gripper Action Server
 """
@@ -54,8 +53,10 @@ class GripperActionServer(object):
         # Store Gripper Type
         self._type = self._gripper.type()
         if self._type == 'custom':
-            msg = ("Stopping %s action server - %s gripper not capable of "
-                   "gripper actions" % (self._gripper.name, self._type))
+            msg = (
+                "Stopping %s action server - %s gripper not capable of "
+                "gripper actions" % (self._gripper.name, self._type)
+            )
             rospy.logerr(msg)
             return
 
@@ -63,24 +64,20 @@ class GripperActionServer(object):
         if self._gripper.error():
             self._gripper.reset()
             if self._gripper.error():
-                msg = ("Stopping %s action server - Unable to clear error" %
-                       self._gripper.name)
+                msg = ("Stopping %s action server - Unable to clear error" % self._gripper.name)
                 rospy.logerr(msg)
                 return
         if not self._gripper.calibrated():
             self._gripper.calibrate()
             if not self._gripper.calibrated():
-                msg = ("Stopping %s action server - Unable to calibrate" %
-                       self._gripper.name)
+                msg = ("Stopping %s action server - Unable to calibrate" % self._gripper.name)
                 rospy.logerr(msg)
                 return
 
         # Action Server
         self._server = actionlib.SimpleActionServer(
-            self._ns,
-            GripperCommandAction,
-            execute_cb=self._on_gripper_action,
-            auto_start=False)
+            self._ns, GripperCommandAction, execute_cb=self._on_gripper_action, auto_start=False
+        )
         self._action_name = rospy.get_name()
         self._server.start()
 
@@ -97,31 +94,25 @@ class GripperActionServer(object):
         if self._type == 'electric':
             self._prm['dead_zone'] = self._dyn.config[self._ee + '_goal']
             self._prm['velocity'] = self._dyn.config[self._ee + '_velocity']
-            self._prm['moving_force'] = self._dyn.config[self._ee +
-                                                         '_moving_force']
-            self._prm['holding_force'] = self._dyn.config[self._ee +
-                                                          '_holding_force']
+            self._prm['moving_force'] = self._dyn.config[self._ee + '_moving_force']
+            self._prm['holding_force'] = self._dyn.config[self._ee + '_holding_force']
         elif self._type == 'suction':
-            self._prm['vacuum_sensor_threshold'] = self._dyn.config[
-                self._ee + '_vacuum_threshold']
-            self._prm['blow_off_seconds'] = self._dyn.config[
-                self._ee + '_blow_off']
+            self._prm['vacuum_sensor_threshold'] = self._dyn.config[self._ee + '_vacuum_threshold']
+            self._prm['blow_off_seconds'] = self._dyn.config[self._ee + '_blow_off']
         self._gripper.set_parameters(parameters=self._prm)
 
     def _update_feedback(self, position):
         if self._type == 'electric':
             self._fdbk.position = self._gripper.position()
             self._fdbk.effort = self._gripper.force()
-            self._fdbk.stalled = (self._gripper.force() >
-                                  self._gripper.parameters()['moving_force'])
-            self._fdbk.reached_goal = (fabs(self._gripper.position() -
-                                            position) <
-                                       self._gripper.parameters()['dead_zone'])
+            self._fdbk.stalled = (self._gripper.force() > self._gripper.parameters()['moving_force'])
+            self._fdbk.reached_goal = (
+                fabs(self._gripper.position() - position) < self._gripper.parameters()['dead_zone']
+            )
         if self._type == 'suction':
             self._fdbk.effort = self._gripper.vacuum_sensor()
             if position >= 100.0:
-                self._fdbk.reached_goal = (not self._gripper.sucking() and
-                                           not self._gripper.blowing())
+                self._fdbk.reached_goal = (not self._gripper.sucking() and not self._gripper.blowing())
             else:
                 self._fdbk.reached_goal = self._gripper.gripping()
         self._result = self._fdbk
@@ -141,14 +132,13 @@ class GripperActionServer(object):
 
     def _check_state(self, position):
         if self._type == 'electric':
-            return (self._gripper.force() >
-                    self._gripper.parameters()['moving_force'] or
-                    fabs(self._gripper.position() - position) <
-                    self._gripper.parameters()['dead_zone'])
+            return (
+                self._gripper.force() > self._gripper.parameters()['moving_force']
+                or fabs(self._gripper.position() - position) < self._gripper.parameters()['dead_zone']
+            )
         elif self._type == 'suction':
             if position >= 100.0:
-                return (not self._gripper.sucking() and
-                        not self._gripper.blowing())
+                return (not self._gripper.sucking() and not self._gripper.blowing())
             else:
                 return self._gripper.gripping()
 
@@ -163,8 +153,7 @@ class GripperActionServer(object):
 
         # Check for errors
         if self._gripper.error():
-            rospy.logerr("%s: Gripper error - please restart action server." %
-                         (self._action_name,))
+            rospy.logerr("%s: Gripper error - please restart action server." % (self._action_name, ))
             self._server.set_aborted()
 
         # Pull parameters that will define the gripper actuation
@@ -194,12 +183,10 @@ class GripperActionServer(object):
             return rospy.get_time() - start
 
         # Continue commanding goal until success or timeout
-        while ((now_from_start(start_time) < self._timeout or
-               self._timeout < 0.0) and not rospy.is_shutdown()):
+        while ((now_from_start(start_time) < self._timeout or self._timeout < 0.0) and not rospy.is_shutdown()):
             if self._server.is_preempt_requested():
                 self._gripper.stop()
-                rospy.loginfo("%s: Gripper Action Preempted" %
-                              (self._action_name,))
+                rospy.loginfo("%s: Gripper Action Preempted" % (self._action_name, ))
                 self._server.set_preempted(self._result)
                 return
             self._update_feedback(position)
@@ -212,7 +199,6 @@ class GripperActionServer(object):
         # Gripper failed to achieve goal before timeout/shutdown
         self._gripper.stop()
         if not rospy.is_shutdown():
-            rospy.logerr("%s: Gripper Command Not Achieved in Allotted Time" %
-                         (self._action_name,))
+            rospy.logerr("%s: Gripper Command Not Achieved in Allotted Time" % (self._action_name, ))
         self._update_feedback(position)
         self._server.set_aborted(self._result)

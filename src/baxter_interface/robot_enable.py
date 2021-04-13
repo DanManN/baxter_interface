@@ -75,18 +75,14 @@ class RobotEnable(object):
         """
         self._state = None
         state_topic = 'robot/state'
-        self._state_sub = rospy.Subscriber(state_topic,
-                                           AssemblyState,
-                                           self._state_callback
-                                           )
+        self._state_sub = rospy.Subscriber(state_topic, AssemblyState, self._state_callback)
         if versioned and not self.version_check():
             sys.exit(1)
 
         baxter_dataflow.wait_for(
             lambda: not self._state is None,
             timeout=2.0,
-            timeout_msg=("Failed to get robot state on %s" %
-            (state_topic,)),
+            timeout_msg=("Failed to get robot state on %s" % (state_topic, )),
         )
 
     def _state_callback(self, msg):
@@ -94,14 +90,12 @@ class RobotEnable(object):
 
     def _toggle_enabled(self, status):
 
-        pub = rospy.Publisher('robot/set_super_enable', Bool, 
-                              queue_size=10)
+        pub = rospy.Publisher('robot/set_super_enable', Bool, queue_size=10)
 
         baxter_dataflow.wait_for(
             test=lambda: self._state.enabled == status,
             timeout=2.0 if status else 5.0,
-            timeout_msg=("Failed to %sable robot" %
-                         ('en' if status else 'dis',)),
+            timeout_msg=("Failed to %sable robot" % ('en' if status else 'dis', )),
             body=lambda: pub.publish(status),
         )
         rospy.loginfo("Robot %s", ('Enabled' if status else 'Disabled'))
@@ -144,27 +138,20 @@ Please verify that the ROS_IP or ROS_HOSTNAME environment variables are set
 and resolvable. For more information please visit:
 http://sdk.rethinkrobotics.com/wiki/RSDK_Shell#Initialize
 """
-        is_reset = lambda: (self._state.enabled == False and
-                            self._state.stopped == False and
-                            self._state.error == False and
-                            self._state.estop_button == 0 and
-                            self._state.estop_source == 0)
+        is_reset = lambda: (
+            self._state.enabled == False and self._state.stopped == False and self._state.error == False and self._state
+            .estop_button == 0 and self._state.estop_source == 0
+        )
         pub = rospy.Publisher('robot/set_super_reset', Empty, queue_size=10)
 
-        if (self._state.stopped and
-            self._state.estop_button == AssemblyState.ESTOP_BUTTON_PRESSED):
+        if (self._state.stopped and self._state.estop_button == AssemblyState.ESTOP_BUTTON_PRESSED):
             rospy.logfatal(error_estop)
             raise IOError(errno.EREMOTEIO, "Failed to Reset: E-Stop Engaged")
 
         rospy.loginfo("Resetting robot...")
         try:
-            baxter_dataflow.wait_for(
-                test=is_reset,
-                timeout=3.0,
-                timeout_msg=error_env,
-                body=pub.publish
-            )
-        except OSError, e:
+            baxter_dataflow.wait_for(test=is_reset, timeout=3.0, timeout_msg=error_env, body=pub.publish)
+        except OSError as e:
             if e.errno == errno.ETIMEDOUT:
                 if self._state.error == True and self._state.stopped == False:
                     rospy.logwarn(error_nonfatal)
@@ -200,18 +187,19 @@ http://sdk.rethinkrobotics.com/wiki/RSDK_Shell#Initialize
         with self.__class__.param_lock:
             robot_version = rospy.get_param(param_name, None)
         if not robot_version:
-            rospy.logwarn("RobotEnable: Failed to retrieve robot version "
-                          "from rosparam: %s\n"
-                          "Verify robot state and connectivity "
-                          "(i.e. ROS_MASTER_URI)", param_name)
+            rospy.logwarn(
+                "RobotEnable: Failed to retrieve robot version "
+                "from rosparam: %s\n"
+                "Verify robot state and connectivity "
+                "(i.e. ROS_MASTER_URI)", param_name
+            )
             return False
         else:
             # parse out first 3 digits of robot version tag
             pattern = ("^([0-9]+)\.([0-9]+)\.([0-9]+)")
             match = re.search(pattern, robot_version)
             if not match:
-                rospy.logwarn("RobotEnable: Invalid robot version: %s",
-                              robot_version)
+                rospy.logwarn("RobotEnable: Invalid robot version: %s", robot_version)
                 return False
             robot_version = match.string[match.start(1):match.end(3)]
             if robot_version not in settings.VERSIONS_SDK2ROBOT[sdk_version]:

@@ -50,6 +50,7 @@ class WeakSet(object):
                     self._pending_removals.append(item)
                 else:
                     self.data.discard(item)
+
         self._remove = _remove
         # A list of keys to be removed
         self._pending_removals = []
@@ -77,8 +78,7 @@ class WeakSet(object):
         return ref(item) in self.data
 
     def __reduce__(self):
-        return (self.__class__, (list(self),),
-                getattr(self, '__dict__', None))
+        return (self.__class__, (list(self), ), getattr(self, '__dict__', None))
 
     __hash__ = None
 
@@ -141,6 +141,7 @@ class WeakSet(object):
 
     def difference(self, other):
         return self._apply(other, self.data.difference)
+
     __sub__ = difference
 
     def difference_update(self, other):
@@ -162,6 +163,7 @@ class WeakSet(object):
 
     def intersection(self, other):
         return self._apply(other, self.data.intersection)
+
     __and__ = intersection
 
     def intersection_update(self, other):
@@ -177,6 +179,7 @@ class WeakSet(object):
 
     def issubset(self, other):
         return self.data.issubset(ref(item) for item in other)
+
     __lt__ = issubset
 
     def __le__(self, other):
@@ -184,6 +187,7 @@ class WeakSet(object):
 
     def issuperset(self, other):
         return self.data.issuperset(ref(item) for item in other)
+
     __gt__ = issuperset
 
     def __ge__(self, other):
@@ -196,6 +200,7 @@ class WeakSet(object):
 
     def symmetric_difference(self, other):
         return self._apply(other, self.data.symmetric_difference)
+
     __xor__ = symmetric_difference
 
     def symmetric_difference_update(self, other):
@@ -217,6 +222,7 @@ class WeakSet(object):
 
     def union(self, other):
         return self._apply(other, self.data.union)
+
     __or__ = union
 
     def isdisjoint(self, other):
