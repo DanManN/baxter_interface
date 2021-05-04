@@ -41,18 +41,24 @@ from gripper_action.gripper_action import (
 )
 
 
-def start_server(gripper):
+def start_server(gripper, arg_scale_pos):
     print("Initializing node... ")
     rospy.init_node("rsdk_gripper_action_server%s" % ("" if gripper == 'both' else "_" + gripper, ))
     print("Initializing gripper action server...")
 
     dynamic_cfg_srv = Server(GripperActionServerConfig, lambda config, level: config)
 
+    try:
+        scale_pos = float(arg_scale_pos)
+    except:
+        scale_pos = 1
+        print("Invalid SCALE_POS:", arg_scale_pos, "using", scale_pos, "instead.")
+
     if gripper == 'both':
-        GripperActionServer('right', dynamic_cfg_srv)
-        GripperActionServer('left', dynamic_cfg_srv)
+        GripperActionServer('right', scale_pos, dynamic_cfg_srv)
+        GripperActionServer('left', scale_pos, dynamic_cfg_srv)
     else:
-        GripperActionServer(gripper, dynamic_cfg_srv)
+        GripperActionServer(gripper, scale_pos, dynamic_cfg_srv)
     print("Running. Ctrl-c to quit")
     rospy.spin()
 
@@ -68,8 +74,15 @@ def main():
         choices=['both', 'left', 'right'],
         help="gripper action server limb",
     )
+    parser.add_argument(
+        "-s",
+        "--scale-position",
+        dest="scale_pos",
+        default=1,
+        help="gripper position control scale factor",
+    )
     args = parser.parse_args(rospy.myargv()[1:])
-    start_server(args.gripper)
+    start_server(args.gripper, args.scale_pos)
 
 
 if __name__ == "__main__":

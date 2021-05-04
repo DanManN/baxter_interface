@@ -45,7 +45,8 @@ from baxter_interface import CHECK_VERSION
 
 
 class GripperActionServer(object):
-    def __init__(self, gripper, reconfig_server):
+    def __init__(self, gripper, scale_pos, reconfig_server):
+        self._scale_pos = scale_pos
         self._dyn = reconfig_server
         self._ee = gripper + '_gripper'
         self._ns = 'robot/end_effector/' + self._ee + '/gripper_action'
@@ -145,7 +146,8 @@ class GripperActionServer(object):
     def _on_gripper_action(self, goal):
         # Store position and effort from call
         # Position to 0:100 == close:open
-        position = goal.command.position
+        position = goal.command.position * self._scale_pos
+        # print(position)
         effort = goal.command.max_effort
         # Apply max effort if specified < 0
         if effort == -1.0:
